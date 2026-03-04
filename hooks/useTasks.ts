@@ -23,7 +23,7 @@ interface CreateTaskInput {
 
 export interface UpdateTaskInput {
   title?: string;
-  description?: string;
+  description?: string | null;
   priority?: Priority;
   category?: TaskCategory;
   status?: TaskStatus;
@@ -58,16 +58,15 @@ export function useTasks(workspaceId: string | null): UseTasksReturn {
   const [error, setError] = useState<string | null>(null);
 
   const fetchTasks = useCallback(async () => {
-    if (!workspaceId) return;
+    if (!workspaceId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
 
     const { data, error: fetchError } = await supabase
       .from("tasks")
-      .select(`
-        *,
-        subtasks(*),
-        task_watchers(user_id)
-      `)
+      .select(`*, subtasks(*), task_watchers(user_id)`)
       .eq("workspace_id", workspaceId)
       .order("is_pinned", { ascending: false })
       .order("column_order", { ascending: true })
@@ -76,7 +75,6 @@ export function useTasks(workspaceId: string | null): UseTasksReturn {
     if (fetchError) {
       setError("Failed to load tasks");
     } else {
-      // Auto-upgrade status if high priority or due soon
       const processed = (data ?? []).map((task) => {
         let status = task.status as TaskStatus;
         if (
@@ -96,39 +94,20 @@ export function useTasks(workspaceId: string | null): UseTasksReturn {
   useEffect(() => {
     fetchTasks();
 
-    // Realtime subscription
     if (!workspaceId) return;
     const channel = supabase
       .channel(`tasks:${workspaceId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "tasks",
-          filter: `workspace_id=eq.${workspaceId}`,
-        },
-        () => fetchTasks()
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "tasks", filter: `workspace_id=eq.${workspaceId}` }, () => fetchTasks())
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [workspaceId, fetchTasks]);
 
-  const createTask = async (
-    input: CreateTaskInput,
-    wsId: string
-  ): Promise<Task | null> => {
+  const createTask = async (input: CreateTaskInput, wsId: string): Promise<Task | null> => {
     if (!session?.user?.id) return null;
 
-    // Determine initial status
     let status: TaskStatus = "pending";
-    if (
-      input.priority === "high" ||
-      (input.due_date && isWithin12Hours(input.due_date))
-    ) {
+    if (input.priority === "high" || (input.due_date && isWithin12Hours(input.due_date))) {
       status = "urgent";
     }
 
@@ -153,102 +132,51 @@ export function useTasks(workspaceId: string | null): UseTasksReturn {
       .select()
       .single();
 
-    if (createError || !task) {
-      toast.error("Failed to create task");
-      return null;
-    }
+    if (createError || !task) { toast.error("Failed to create task"); return null; }
 
-    // Create subtasks if provided
     if (input.subtasks && input.subtasks.length > 0) {
       await supabase.from("subtasks").insert(
-        input.subtasks.map((st, i) => ({
-          task_id: task.id,
-          title: st.title,
-          order: i,
-        }))
+        input.subtasks.map((st, i) => ({ task_id: task.id, title: st.title, order: i }))
       );
     }
 
-    // Log activity
     await supabase.from("activity_logs").insert({
-      workspace_id: wsId,
-      task_id: task.id,
-      user_id: session.user.id,
-      action: "task_created",
-      metadata: { title: task.title },
+      workspace_id: wsId, task_id: task.id, user_id: session.user.id,
+      action: "task_created", metadata: { title: task.title },
     });
 
     await fetchTasks();
     return task as Task;
   };
 
-  const updateTask = async (
-    id: string,
-    input: UpdateTaskInput
-  ): Promise<boolean> => {
-    const { error: updateError } = await supabase
-      .from("tasks")
-      .update(input)
-      .eq("id", id);
+  const updateTask = async (id: string, input: UpdateTaskInput): Promise<boolean> => {
+    const { error: updateError } = await supabase.from("tasks").update(input).eq("id", id);
+    if (updateError) { toast.error("Failed to update task"); return false; }
 
-    if (updateError) {
-      toast.error("Failed to update task");
-      return false;
-    }
-
-    // Log activity
     if (session?.user?.id && workspaceId) {
       await supabase.from("activity_logs").insert({
-        workspace_id: workspaceId,
-        task_id: id,
-        user_id: session.user.id,
-        action: "task_updated",
-        metadata: input,
+        workspace_id: workspaceId, task_id: id, user_id: session.user.id,
+        action: "task_updated", metadata: input,
       });
     }
-
     await fetchTasks();
     return true;
   };
 
   const deleteTask = async (id: string): Promise<boolean> => {
-    const { error: deleteError } = await supabase
-      .from("tasks")
-      .delete()
-      .eq("id", id);
-
-    if (deleteError) {
-      toast.error("Failed to delete task");
-      return false;
-    }
-
+    const { error: deleteError } = await supabase.from("tasks").delete().eq("id", id);
+    if (deleteError) { toast.error("Failed to delete task"); return false; }
     setTasks((prev) => prev.filter((t) => t.id !== id));
     return true;
   };
 
-  const moveTask = async (
-    id: string,
-    newStatus: TaskStatus
-  ): Promise<boolean> => {
+  const moveTask = async (id: string, newStatus: TaskStatus): Promise<boolean> => {
     return updateTask(id, { status: newStatus });
   };
 
-  // Derived columns
   const urgentTasks = tasks.filter((t) => t.status === "urgent");
   const pendingTasks = tasks.filter((t) => t.status === "pending");
   const completedTasks = tasks.filter((t) => t.status === "completed");
 
-  return {
-    tasks,
-    urgentTasks,
-    pendingTasks,
-    completedTasks,
-    loading,
-    error,
-    createTask,
-    updateTask,
-    deleteTask,
-    moveTask,
-    refetch: fetchTasks,
-  };
+  return { tasks, urgentTasks, pendingTasks, completedTasks, loading, error, createTask, updateTask, deleteTask, moveTask, refetch: fetchTasks };
 }
