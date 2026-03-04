@@ -18,14 +18,17 @@ interface UseWorkspaceReturn {
 }
 
 export function useWorkspace(): UseWorkspaceReturn {
-  const { data: session } = useSession();
+  const sessionResult = useSession();
+  const session = sessionResult?.data;
+  const sessionStatus = sessionResult?.status;
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [members, setMembers] = useState<WorkspaceMemberWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchWorkspace = useCallback(async () => {
-    if (!session?.user?.id) return;
+    if (sessionStatus === "loading") return;
+    if (!session?.user?.id) { setLoading(false); return; }
     setLoading(true);
     setError(null);
 
