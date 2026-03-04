@@ -17,6 +17,8 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { workspaceId, input } = body;
 
+    const nullIfEmpty = (v: any) => (v === "" || v === undefined ? null : v);
+
     let status = "pending";
     if (input.priority === "high" || (input.due_date && isWithin12Hours(input.due_date))) {
       status = "urgent";
@@ -27,16 +29,16 @@ export async function POST(req: Request) {
       .insert({
         workspace_id: workspaceId,
         title: input.title,
-        description: input.description,
+        description: nullIfEmpty(input.description),
         priority: input.priority,
         category: input.category,
         status,
-        due_date: input.due_date,
-        assigned_to: input.assigned_to,
+        due_date: nullIfEmpty(input.due_date),
+        assigned_to: nullIfEmpty(input.assigned_to),
         tags: input.tags ?? [],
         is_recurring: input.is_recurring ?? false,
-        recurrence_pattern: input.recurrence_pattern,
-        depends_on: input.depends_on,
+        recurrence_pattern: nullIfEmpty(input.recurrence_pattern),
+        depends_on: nullIfEmpty(input.depends_on),
         created_by: session.user.id,
         column_order: 0,
       })
@@ -57,7 +59,7 @@ export async function POST(req: Request) {
       user_id: session.user.id,
       action: "task_created",
       metadata: { title: task.title },
-    });
+    }).catch(() => {});
 
     return NextResponse.json({ task });
   } catch (e: any) {
