@@ -15,6 +15,7 @@ import { TaskAttachments } from "@/components/tasks/TaskAttachments";
 import { cn, CATEGORY_CONFIG, PRIORITY_CONFIG, formatDateTime, isWithin12Hours, isOverdue } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import type { Task, Priority, TaskCategory, TaskStatus } from "@/types";
+import type { UpdateTaskInput } from "@/hooks/useTasks";
 import toast from "react-hot-toast";
 import { useSession } from "next-auth/react";
 
@@ -40,7 +41,7 @@ interface TaskDetailModalProps {
   task: Task | null;
   open: boolean;
   onClose: () => void;
-  onUpdate: (id: string, data: Partial<Task>) => Promise<boolean>;
+  onUpdate: (id: string, data: UpdateTaskInput) => Promise<boolean>;
   onDelete: (id: string) => void;
   onMove: (id: string, status: TaskStatus) => void;
   members: { id: string; profile: { full_name: string | null; avatar_url: string | null; email: string } }[];
