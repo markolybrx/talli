@@ -59,7 +59,7 @@ export async function POST(req: Request) {
       user_id: session.user.id,
       action: "task_created",
       metadata: { title: task.title },
-    }).catch(() => {});
+    })
 
     return NextResponse.json({ task });
   } catch (e: any) {
