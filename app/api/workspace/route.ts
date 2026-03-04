@@ -1,48 +1,42 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { supabaseAdmin } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
 
 export async function POST(req: Request) {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const session = await auth();
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized - no session" }, { status: 401 });
 
-  const { name, code } = await req.json();
+    const admin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
 
-  const { data: workspace, error } = await supabaseAdmin
-    .from("workspaces")
-    .insert({ name, code, created_by: session.user.id })
-    .select()
-    .single();
+    const { name, code } = await req.json();
 
-  if (error || !workspace) return NextResponse.json({ error: error?.message }, { status: 500 });
+    const { data: workspace, error } = await admin
+      .from("workspaces")
+      .insert({ name, code, created_by: session.user.id })
+      .select()
+      .single();
 
-  await supabaseAdmin.from("workspace_members").insert({
-    workspace_id: workspace.id,
-    user_id: session.user.id,
-    role: "admin",
-  });
+    if (error || !workspace) {
+      return NextResponse.json({ error: error?.message ?? "Insert failed", details: error }, { status: 500 });
+    }
 
-  return NextResponse.json({ workspace });
-}
+    const { error: memberError } = await admin.from("workspace_members").insert({
+      workspace_id: workspace.id,
+      user_id: session.user.id,
+      role: "admin",
+    });
 
-export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (memberError) {
+      return NextResponse.json({ error: memberError.message }, { status: 500 });
+    }
 
-  const { data: membership } = await supabaseAdmin
-    .from("workspace_members")
-    .select("workspace_id")
-    .eq("user_id", session.user.id)
-    .limit(1)
-    .single();
-
-  if (!membership) return NextResponse.json({ workspace: null });
-
-  const { data: workspace } = await supabaseAdmin
-    .from("workspaces")
-    .select("*")
-    .eq("id", membership.workspace_id)
-    .single();
-
-  return NextResponse.json({ workspace });
+    return NextResponse.json({ workspace });
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message ?? "Unknown error" }, { status: 500 });
+  }
 }
