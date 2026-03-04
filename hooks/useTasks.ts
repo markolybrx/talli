@@ -104,7 +104,7 @@ export function useTasks(workspaceId: string | null): UseTasksReturn {
   }, [workspaceId, fetchTasks]);
 
   const createTask = async (input: CreateTaskInput, wsId: string): Promise<Task | null> => {
-    if (!session?.user?.id) return null;
+    if (!session?.user?.id) { toast.error("Session missing user ID. Please sign out and back in."); return null; }
 
     let status: TaskStatus = "pending";
     if (input.priority === "high" || (input.due_date && isWithin12Hours(input.due_date))) {
