@@ -138,10 +138,11 @@ export function TaskDetailModal({
 
   const toggleWatch = async () => {
     if (!task || !session?.user?.id) return;
+    const userId = session.user.id;
     if (isWatching) {
-      await supabase.from("task_watchers").delete().eq("task_id", task.id).eq("user_id", session.user.id);
+      await supabase.from("task_watchers").delete().eq("task_id", task.id).eq("user_id", userId);
       setIsWatching(false);
-      setWatchers((prev) => prev.filter((w) => w.user_id !== session.user.id));
+      setWatchers((prev) => prev.filter((w) => w.user_id !== userId));
       toast.success("Stopped watching task");
     } else {
       await supabase.from("task_watchers").insert({ task_id: task.id, user_id: session.user.id });
