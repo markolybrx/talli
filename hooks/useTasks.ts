@@ -58,37 +58,24 @@ export function useTasks(workspaceId: string | null): UseTasksReturn {
   const [error, setError] = useState<string | null>(null);
 
   const fetchTasks = useCallback(async () => {
-    if (!workspaceId) {
-      setLoading(false);
-      return;
-    }
+    if (!workspaceId) { setLoading(false); return; }
     setLoading(true);
-
-    const { data, error: fetchError } = await supabase
-      .from("tasks")
-      .select(`*, subtasks(*), task_watchers(user_id)`)
-      .eq("workspace_id", workspaceId)
-      .order("is_pinned", { ascending: false })
-      .order("column_order", { ascending: true })
-      .order("created_at", { ascending: false });
-
-    if (fetchError) {
-      setError("Failed to load tasks");
-    } else {
-      const processed = (data ?? []).map((task) => {
-        let status = task.status as TaskStatus;
-        if (
-          status !== "completed" &&
-          (task.priority === "high" ||
-            (task.due_date && isWithin12Hours(task.due_date)))
-        ) {
-          status = "urgent";
-        }
-        return { ...task, status };
-      });
-      setTasks(processed);
-    }
-    setLoading(false);
+    try {
+      const res = await fetch(`/api/tasks?workspaceId=${workspaceId}`);
+      const json = await res.json();
+      if (!res.ok) { setError("Failed to load tasks"); }
+      else {
+        const processed = (json.tasks ?? []).map((task: any) => {
+          let status = task.status as TaskStatus;
+          if (status !== "completed" && (task.priority === "high" || (task.due_date && isWithin12Hours(task.due_date)))) {
+            status = "urgent";
+          }
+          return { ...task, status };
+        });
+        setTasks(processed);
+      }
+    } catch { setError("Failed to load tasks"); }
+    finally { setLoading(false); }
   }, [workspaceId]);
 
   useEffect(() => {
