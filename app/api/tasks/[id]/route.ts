@@ -43,7 +43,7 @@ export async function PATCH(
 
     if (watchers && watchers.length > 0) {
       await supabaseAdmin.from("notifications").insert(
-        watchers.map((w) => ({
+        watchers.map((w: any) => ({
           user_id: w.user_id,
           title: "Task completed",
           message: `"${task.title}" has been marked as completed.`,
