@@ -1,16 +1,14 @@
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
+"use client";
 import { SessionProvider } from "next-auth/react";
-import { MobileNav } from "@/components/layout/MobileNav";
-import { AppShell } from "@/components/layout/AppShell";
 
-export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth();
-  if (!session?.user) redirect("/login");
-
+export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider session={session}>
-      <AppShell>{children}</AppShell>
+    <SessionProvider>
+      <div style={{ display: "flex", minHeight: "100vh" }}>
+        <main style={{ flex: 1, padding: "20px" }}>
+          {children}
+        </main>
+      </div>
     </SessionProvider>
   );
 }
