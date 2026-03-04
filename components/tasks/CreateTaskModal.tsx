@@ -93,7 +93,7 @@ export function CreateTaskModal({
         ...data,
         due_date,
         subtasks: subtasks.map((t) => ({ title: t })),
-        tags,
+        tags: tags as any,
       });
       handleClose();
     } catch {
