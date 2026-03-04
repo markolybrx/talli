@@ -110,6 +110,7 @@ export default function DashboardPage() {
   };
 
   const handleCreateTask = async (data: Parameters<typeof createTask>[0]) => {
+    toast.success('WS: ' + (workspace?.id ?? 'NULL'));
     if (!workspace?.id) return;
     const task = await createTask(data, workspace.id);
     if (task) toast.success("Task created!");
