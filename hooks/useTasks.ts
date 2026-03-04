@@ -21,7 +21,7 @@ interface CreateTaskInput {
   subtasks?: { title: string }[];
 }
 
-interface UpdateTaskInput {
+export interface UpdateTaskInput {
   title?: string;
   description?: string;
   priority?: Priority;
