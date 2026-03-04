@@ -4,10 +4,12 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { workspace } = useWorkspace();
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -18,7 +20,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
-      <Sidebar workspace={null} />
+      <Sidebar workspace={workspace} />
       <main style={{ flex: 1, padding: "20px" }}>{children}</main>
     </div>
   );
