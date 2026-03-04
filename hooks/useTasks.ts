@@ -104,49 +104,15 @@ export function useTasks(workspaceId: string | null): UseTasksReturn {
   }, [workspaceId, fetchTasks]);
 
   const createTask = async (input: CreateTaskInput, wsId: string): Promise<Task | null> => {
-    if (!session?.user?.id) { toast.error("Session missing user ID. Please sign out and back in."); return null; }
-
-    let status: TaskStatus = "pending";
-    if (input.priority === "high" || (input.due_date && isWithin12Hours(input.due_date))) {
-      status = "urgent";
-    }
-
-    const { data: task, error: createError } = await supabase
-      .from("tasks")
-      .insert({
-        workspace_id: wsId,
-        title: input.title,
-        description: input.description,
-        priority: input.priority,
-        category: input.category,
-        status,
-        due_date: input.due_date,
-        assigned_to: input.assigned_to,
-        tags: input.tags ?? [],
-        is_recurring: input.is_recurring ?? false,
-        recurrence_pattern: input.recurrence_pattern,
-        depends_on: input.depends_on,
-        created_by: session.user.id,
-        column_order: tasks.length,
-      })
-      .select()
-      .single();
-
-    if (createError || !task) { toast.error("Failed to create task"); return null; }
-
-    if (input.subtasks && input.subtasks.length > 0) {
-      await supabase.from("subtasks").insert(
-        input.subtasks.map((st, i) => ({ task_id: task.id, title: st.title, order: i }))
-      );
-    }
-
-    await supabase.from("activity_logs").insert({
-      workspace_id: wsId, task_id: task.id, user_id: session.user.id,
-      action: "task_created", metadata: { title: task.title },
+    const res = await fetch("/api/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ workspaceId: wsId, input }),
     });
-
+    const json = await res.json();
+    if (!res.ok || !json.task) { toast.error(json.error ?? "Failed to create task"); return null; }
     await fetchTasks();
-    return task as Task;
+    return json.task as Task;
   };
 
   const updateTask = async (id: string, input: UpdateTaskInput): Promise<boolean> => {
