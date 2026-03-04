@@ -261,7 +261,7 @@ export default function DashboardPage() {
 
       <TaskDetailModal task={editingTask} open={!!editingTask}
         onClose={() => setEditingTask(null)}
-        onUpdate={updateTask} onDelete={handleDeleteTask} onMove={moveTask}
+        onUpdate={(id, data) => updateTask(id, data as any)} onDelete={handleDeleteTask} onMove={moveTask}
         members={membersForModal} tasks={tasks.map(t => ({ id: t.id, title: t.title }))}
         currentUserId={session?.user?.id ?? ""} />
 
