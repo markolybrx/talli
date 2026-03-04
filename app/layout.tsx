@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
+import { SessionProvider } from "next-auth/react";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -25,13 +26,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <meta name="theme-color" content="#6366F1" />
       </head>
-      <body className="font-poppins bg-background text-text-primary antialiased">
-        {children}
-        <Toaster position="top-right" toastOptions={{
-          style: { fontFamily: "Poppins, sans-serif", fontSize: "14px", borderRadius: "12px", border: "1px solid #E4E4E7" },
-          success: { iconTheme: { primary: "#10B981", secondary: "#fff" } },
-          error: { iconTheme: { primary: "#F43F5E", secondary: "#fff" } },
-        }} />
+      <body className="font-poppins antialiased" style={{ backgroundColor: "#FAFAFA", color: "#18181B" }}>
+        <SessionProvider>
+          {children}
+        </SessionProvider>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            style: { fontFamily: "Poppins, sans-serif", fontSize: "14px", borderRadius: "12px", border: "1px solid #E4E4E7" },
+            success: { iconTheme: { primary: "#10B981", secondary: "#fff" } },
+            error: { iconTheme: { primary: "#F43F5E", secondary: "#fff" } },
+          }}
+        />
       </body>
     </html>
   );
