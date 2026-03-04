@@ -44,3 +44,40 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: e.message ?? "Unknown error" }, { status: 500 });
   }
 }
+
+export async function GET() {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const admin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    const { data: membership } = await admin
+      .from("workspace_members")
+      .select("workspace_id")
+      .eq("user_id", session.user.id)
+      .limit(1)
+      .single();
+
+    if (!membership) return NextResponse.json({ workspace: null, members: [] });
+
+    const { data: workspace } = await admin
+      .from("workspaces")
+      .select("*")
+      .eq("id", membership.workspace_id)
+      .single();
+
+    const { data: members } = await admin
+      .from("workspace_members")
+      .select("*, profile:profiles(*)")
+      .eq("workspace_id", membership.workspace_id);
+
+    return NextResponse.json({ workspace: workspace ?? null, members: members ?? [] });
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message }, { status: 500 });
+  }
+}
