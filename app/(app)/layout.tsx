@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { SessionProvider } from "next-auth/react";
+import { AppShell } from "@/components/layout/AppShell";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -8,17 +9,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <SessionProvider session={session}>
-      <AppLayoutClient>{children}</AppLayoutClient>
+      <AppShell>{children}</AppShell>
     </SessionProvider>
-  );
-}
-
-function AppLayoutClient({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
-      <main style={{ flex: 1 }}>
-        {children}
-      </main>
-    </div>
   );
 }
