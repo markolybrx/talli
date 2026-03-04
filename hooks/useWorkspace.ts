@@ -18,22 +18,22 @@ interface UseWorkspaceReturn {
 }
 
 export function useWorkspace(): UseWorkspaceReturn {
-  const sessionResult = useSession();
-  const session = sessionResult?.data;
-  const sessionStatus = sessionResult?.status;
+  const { data: session, status } = useSession();
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [members, setMembers] = useState<WorkspaceMemberWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchWorkspace = useCallback(async () => {
-    if (sessionStatus === "loading") return;
-    if (!session?.user?.id) { setLoading(false); return; }
+    if (status === "loading") return;
+    if (!session?.user?.id) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
 
     try {
-      // Get the user's workspace membership
       const { data: membership, error: membershipError } = await supabase
         .from("workspace_members")
         .select("workspace_id")
@@ -48,7 +48,6 @@ export function useWorkspace(): UseWorkspaceReturn {
         return;
       }
 
-      // Get workspace details
       const { data: ws, error: wsError } = await supabase
         .from("workspaces")
         .select("*")
@@ -63,13 +62,9 @@ export function useWorkspace(): UseWorkspaceReturn {
 
       setWorkspace(ws);
 
-      // Get all members with profiles
       const { data: allMembers, error: membersError } = await supabase
         .from("workspace_members")
-        .select(`
-          *,
-          profile:profiles(*)
-        `)
+        .select(`*, profile:profiles(*)`)
         .eq("workspace_id", ws.id)
         .order("joined_at", { ascending: true });
 
@@ -81,7 +76,7 @@ export function useWorkspace(): UseWorkspaceReturn {
     } finally {
       setLoading(false);
     }
-  }, [session?.user?.id]);
+  }, [session?.user?.id, status]);
 
   useEffect(() => {
     fetchWorkspace();
