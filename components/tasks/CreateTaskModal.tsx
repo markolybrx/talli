@@ -77,6 +77,7 @@ export function CreateTaskModal({
 
   const handleFormSubmit = async (data: TaskFormData) => {
     setLoading(true);
+    toast.success("Submitting...");
     try {
       const due_date =
         data.due_date && data.due_time
