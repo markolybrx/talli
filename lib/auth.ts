@@ -33,7 +33,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (error || !user) return null;
 
-        const matchedUser = user.users.find((u) => u.email === email);
+        const matchedUser = user.users.find((u: { email?: string }) => u.email === email);
         if (!matchedUser) return null;
 
         const { data: profile } = await supabaseAdmin
