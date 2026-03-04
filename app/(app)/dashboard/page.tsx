@@ -162,6 +162,19 @@ export default function DashboardPage() {
     profile: { full_name: m.profile?.full_name ?? null, avatar_url: m.profile?.avatar_url ?? null, email: m.profile?.email ?? "" },
   }));
 
+  if (!tasksLoading && !workspace) {
+    return (
+      <div className="flex-1 flex items-center justify-center h-screen">
+        <div className="text-center space-y-4">
+          <p className="text-text-primary font-medium">No workspace found.</p>
+          <a href="/workspace" className="inline-block px-4 py-2 bg-brand text-white rounded-lg text-sm">
+            Create or Join a Workspace
+          </a>
+        </div>
+      </div>
+    );
+  }
+
   if (tasksLoading) {
     return (
       <div className="flex-1 flex items-center justify-center h-screen">
