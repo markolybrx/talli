@@ -281,3 +281,5 @@ export default function DashboardPage() {
         onBulkAssign={handleBulkAssign} onBulkPriority={handleBulkPriority}
         members={membersForModal} />
     </>
+  );
+}
