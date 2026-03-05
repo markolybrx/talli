@@ -24,30 +24,38 @@ export function useWorkspace(): UseWorkspaceReturn {
   const [error, setError] = useState<string | null>(null);
 
   const fetchWorkspace = useCallback(async () => {
+    // If unauthenticated, stop loading
+    if (status === "unauthenticated") { setLoading(false); return; }
+    // Still waiting for session
     if (status === "loading") return;
+    // No user id
     if (!session?.user?.id) { setLoading(false); return; }
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 8000);
 
     setLoading(true);
     try {
-      const res = await fetch("/api/workspace", { signal: controller.signal });
+      const res = await fetch("/api/workspace");
       const json = await res.json();
-      if (!res.ok) { setError(json.error ?? "Failed to load workspace"); }
-      else {
-        setWorkspace(json.workspace);
+      if (!res.ok) {
+        setError(json.error ?? "Failed to load workspace");
+        setWorkspace(null);
+      } else {
+        setWorkspace(json.workspace ?? null);
         setMembers(json.members ?? []);
       }
     } catch (e: any) {
       setError(e.message);
-      setLoading(false);
     } finally {
-      clearTimeout(timer);
       setLoading(false);
     }
   }, [session?.user?.id, status]);
 
   useEffect(() => { fetchWorkspace(); }, [fetchWorkspace]);
+
+  // Safety timeout — never stay loading more than 10s
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 10000);
+    return () => clearTimeout(timer);
+  }, []);
 
   return { workspace, members, loading, error, refetch: fetchWorkspace };
 }
