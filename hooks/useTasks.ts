@@ -60,8 +60,11 @@ export function useTasks(workspaceId: string | null): UseTasksReturn {
   const fetchTasks = useCallback(async () => {
     if (!workspaceId) { setLoading(false); return; }
     setLoading(true);
+    const controller = new AbortController();
+    const timer = setTimeout(() => { controller.abort(); setLoading(false); }, 8000);
     try {
-      const res = await fetch(`/api/tasks?workspaceId=${workspaceId}`);
+      const res = await fetch(`/api/tasks?workspaceId=${workspaceId}`, { signal: controller.signal });
+      clearTimeout(timer);
       const json = await res.json();
       if (!res.ok) { setError("Failed to load tasks"); }
       else {

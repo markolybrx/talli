@@ -26,10 +26,12 @@ export function useWorkspace(): UseWorkspaceReturn {
   const fetchWorkspace = useCallback(async () => {
     if (status === "loading") return;
     if (!session?.user?.id) { setLoading(false); return; }
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
 
     setLoading(true);
     try {
-      const res = await fetch("/api/workspace");
+      const res = await fetch("/api/workspace", { signal: controller.signal });
       const json = await res.json();
       if (!res.ok) { setError(json.error ?? "Failed to load workspace"); }
       else {
@@ -38,7 +40,9 @@ export function useWorkspace(): UseWorkspaceReturn {
       }
     } catch (e: any) {
       setError(e.message);
+      setLoading(false);
     } finally {
+      clearTimeout(timer);
       setLoading(false);
     }
   }, [session?.user?.id, status]);
