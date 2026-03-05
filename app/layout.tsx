@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { Providers } from "@/components/providers/Providers";
 import { InstallPWA } from "@/components/ui/InstallPWA";
+import { PWASetup } from "@/components/ui/PWASetup";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>
           {children}
         </Providers>
+        <PWASetup />
         <InstallPWA />
         <Toaster position="top-right" />
       </body>
