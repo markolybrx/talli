@@ -5,6 +5,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { cn } from "@/lib/utils";
 import { useSession } from "next-auth/react";
+import { TalliIcon } from "@/components/ui/Logo";
 
 interface TopbarProps {
   title?: string;
@@ -23,10 +24,10 @@ export function Topbar({ title = "Dashboard", onSearch }: TopbarProps) {
 
   return (
     <header className="h-16 bg-surface border-b border-border flex items-center px-4 lg:px-6 gap-4 sticky top-0 z-30">
-      <div className="hidden lg:block">
+      <div className="flex items-center gap-2.5">
+        <TalliIcon size={32} />
         <h1 className="text-base font-semibold text-text-primary">{title}</h1>
       </div>
-      <div className="lg:hidden text-base font-semibold text-text-primary">{title}</div>
 
       {/* Search */}
       <div className="flex-1 max-w-sm lg:max-w-md mx-auto lg:mx-0 lg:ml-auto">

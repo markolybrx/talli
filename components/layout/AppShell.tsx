@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { useWorkspace } from "@/hooks/useWorkspace";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
@@ -15,7 +16,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     if (status === "unauthenticated") router.push("/login");
   }, [status, router]);
 
-  if (status === "loading") return <div style={{padding:"20px"}}>Loading...</div>;
+  if (status === "loading") return <LoadingScreen />;
   if (!session) return null;
 
   return (
