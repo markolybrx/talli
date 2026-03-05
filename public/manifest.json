@@ -1,11 +1,12 @@
 {
-  "name": "Talli \u2014 Task Manager",
+  "name": "Talli",
   "short_name": "Talli",
-  "description": "AI-powered enterprise task management for recruitment teams",
+  "description": "AI-powered task management for your team.",
   "start_url": "/",
+  "id": "/",
   "display": "standalone",
-  "background_color": "#FAFAFA",
-  "theme_color": "#6366F1",
+  "background_color": "#ffffff",
+  "theme_color": "#7C3AED",
   "orientation": "portrait-primary",
   "icons": [
     {
@@ -20,24 +21,5 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ],
-  "screenshots": [],
-  "categories": [
-    "productivity",
-    "business"
-  ],
-  "shortcuts": [
-    {
-      "name": "New Task",
-      "short_name": "New Task",
-      "description": "Create a new task",
-      "url": "/dashboard?new=true"
-    },
-    {
-      "name": "Calendar",
-      "short_name": "Calendar",
-      "url": "/calendar"
-    }
-  ],
-  "id": "/"
+  ]
 }
