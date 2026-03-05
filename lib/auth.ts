@@ -99,9 +99,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
-        token.id = user.id;
+        // For Google, look up the actual Supabase profile ID by email
+        if (account?.provider === "google" && user.email) {
+          const { data: profile } = await supabaseAdmin
+            .from("profiles")
+            .select("id")
+            .eq("email", user.email)
+            .single();
+          token.id = profile?.id ?? user.id;
+        } else {
+          token.id = user.id;
+        }
       }
       return token;
     },
