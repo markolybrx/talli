@@ -167,9 +167,11 @@ export default function DashboardPage() {
 
   if (wsLoading || tasksLoading) return <LoadingScreen />;
 
+
+
+
+
   if (!workspace) return <LoadingScreen />;
-
-
 
   const columns: { id: TaskStatus; tasks: Task[] }[] = [
     { id: "urgent", tasks: applyFilters(urgentTasks) },
