@@ -163,9 +163,6 @@ export default function DashboardPage() {
     profile: { full_name: m.profile?.full_name ?? null, avatar_url: m.profile?.avatar_url ?? null, email: m.profile?.email ?? "" },
   }));
 
-  const { loading: wsLoading } = useWorkspace();
-
-  if (wsLoading || tasksLoading) return <LoadingScreen />;
 
 
 
