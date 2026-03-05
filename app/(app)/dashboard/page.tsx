@@ -61,7 +61,7 @@ const COLUMN_CONFIG = {
 export default function DashboardPage() {
   const sessionResult = useSession();
   const session = sessionResult?.data;
-  const { workspace, members } = useWorkspace();
+  const { workspace, members, loading: wsLoading } = useWorkspace();
   const { tasks, urgentTasks, pendingTasks, completedTasks, loading: tasksLoading,
     createTask, updateTask, deleteTask, moveTask } = useTasks(workspace?.id ?? null);
 
@@ -171,7 +171,14 @@ export default function DashboardPage() {
 
 
 
-  if (!workspace) return <LoadingScreen />;
+  // Show loading only briefly while workspace fetches
+  if (wsLoading) return <LoadingScreen />;
+
+  // No workspace - send to setup
+  if (!workspace) {
+    if (typeof window !== "undefined") window.location.href = "/workspace";
+    return <LoadingScreen />;
+  }
 
   const columns: { id: TaskStatus; tasks: Task[] }[] = [
     { id: "urgent", tasks: applyFilters(urgentTasks) },
