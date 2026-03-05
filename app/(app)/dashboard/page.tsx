@@ -282,4 +282,6 @@ export default function DashboardPage() {
         members={membersForModal} />
     </>
   );
-}
+}  if (tasksLoading || !workspace) return <LoadingScreen />;
+
+
