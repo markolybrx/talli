@@ -4,49 +4,45 @@ export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { LoadingScreen } from "@/components/ui/LoadingScreen";
 
 export default function RootPage() {
   const router = useRouter();
-  const [ready, setReady] = useState(false);
+  const { data: session, status } = useSession();
+  const [checking, setChecking] = useState(false);
 
   useEffect(() => {
-    async function check() {
-      try {
-        const timeout = (ms: number) => new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("timeout")), ms)
-        );
+    // Wait for session to resolve
+    if (status === "loading") return;
 
-        // Check session with 5s timeout
-        const sessionRes = await Promise.race([
-          fetch("/api/auth/session"),
-          timeout(5000)
-        ]) as Response;
-        const session = await sessionRes.json();
+    if (status === "unauthenticated") {
+      router.replace("/login");
+      return;
+    }
 
-        if (!session?.user?.id) {
-          router.replace("/login");
-          return;
-        }
-
-        // Check workspace with 5s timeout
-        const [wsRes] = await Promise.all([
-          Promise.race([fetch("/api/workspace"), timeout(5000)]) as Promise<Response>,
-          new Promise(r => setTimeout(r, 1500)),
-        ]);
-        const wsData = await (wsRes as Response).json();
-
-        if (wsData?.workspace) {
-          router.replace("/dashboard");
-        } else {
+    // Session is authenticated — now check workspace
+    if (status === "authenticated" && session?.user?.id && !checking) {
+      setChecking(true);
+      const run = async () => {
+        try {
+          const [wsRes] = await Promise.all([
+            fetch("/api/workspace"),
+            new Promise(r => setTimeout(r, 1500)), // min loading time
+          ]);
+          const wsData = await wsRes.json();
+          if (wsData?.workspace) {
+            router.replace("/dashboard");
+          } else {
+            router.replace("/workspace");
+          }
+        } catch {
           router.replace("/workspace");
         }
-      } catch {
-        router.replace("/login");
-      }
+      };
+      run();
     }
-    check();
-  }, [router]);
+  }, [status, session, router, checking]);
 
   return <LoadingScreen />;
 }
