@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { LoadingScreen } from "@/components/ui/LoadingScreen";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/Button";
@@ -32,6 +33,21 @@ export default function WorkspacePage() {
   const [mode, setMode] = useState<Mode>("choose");
   const [loading, setLoading] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
+  const { data: session, status } = useSession();
+
+  // If user already has workspace, skip straight to dashboard
+  useEffect(() => {
+    if (status === "loading") return;
+    if (!session?.user?.id) return;
+    fetch("/api/workspace")
+      .then(r => r.json())
+      .then(data => {
+        if (data?.workspace) {
+          setRedirecting(true);
+          router.replace("/dashboard");
+        }
+      });
+  }, [session, status, router]);
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
 
   const createForm = useForm<CreateData>({ resolver: zodResolver(createSchema) });
