@@ -19,7 +19,6 @@ import { NLTaskCreator } from "@/components/ai/NLTaskCreator";
 import { Button } from "@/components/ui/Button";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useTasks } from "@/hooks/useTasks";
-import { useRouter } from "next/navigation";
 import { cn, isWithin12Hours, isOverdue } from "@/lib/utils";
 import type { Task, TaskStatus, Priority } from "@/types";
 import toast from "react-hot-toast";
@@ -168,10 +167,7 @@ export default function DashboardPage() {
 
   if (wsLoading || tasksLoading) return <LoadingScreen />;
 
-  if (!workspace) {
-    router.replace("/workspace");
-    return <LoadingScreen />;
-  }
+  if (!workspace) return <LoadingScreen />;
 
 
 
