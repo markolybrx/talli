@@ -23,6 +23,7 @@ import { cn, isWithin12Hours, isOverdue } from "@/lib/utils";
 import type { Task, TaskStatus, Priority } from "@/types";
 import toast from "react-hot-toast";
 import { useSession } from "next-auth/react";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
 
 type MobileTab = "urgent" | "pending" | "completed";
 
@@ -162,29 +163,9 @@ export default function DashboardPage() {
     profile: { full_name: m.profile?.full_name ?? null, avatar_url: m.profile?.avatar_url ?? null, email: m.profile?.email ?? "" },
   }));
 
-  if (!tasksLoading && !workspace) {
-    return (
-      <div className="flex-1 flex items-center justify-center h-screen">
-        <div className="text-center space-y-4">
-          <p className="text-text-primary font-medium">No workspace found.</p>
-          <a href="/workspace" className="inline-block px-4 py-2 bg-brand text-white rounded-lg text-sm">
-            Create or Join a Workspace
-          </a>
-        </div>
-      </div>
-    );
-  }
+  if (tasksLoading || !workspace) return <LoadingScreen />;
 
-  if (tasksLoading) {
-    return (
-      <div className="flex-1 flex items-center justify-center h-screen">
-        <div className="text-center space-y-3">
-          <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-sm text-text-secondary">Loading workspace...</p>
-        </div>
-      </div>
-    );
-  }
+
 
   const columns: { id: TaskStatus; tasks: Task[] }[] = [
     { id: "urgent", tasks: applyFilters(urgentTasks) },
