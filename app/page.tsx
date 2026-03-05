@@ -13,8 +13,15 @@ export default function RootPage() {
   useEffect(() => {
     async function check() {
       try {
-        // Check session
-        const sessionRes = await fetch("/api/auth/session");
+        const timeout = (ms: number) => new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("timeout")), ms)
+        );
+
+        // Check session with 5s timeout
+        const sessionRes = await Promise.race([
+          fetch("/api/auth/session"),
+          timeout(5000)
+        ]) as Response;
         const session = await sessionRes.json();
 
         if (!session?.user?.id) {
@@ -22,12 +29,12 @@ export default function RootPage() {
           return;
         }
 
-        // Check workspace
-        const wsRes = await fetch("/api/workspace");
-        const wsData = await wsRes.json();
-
-        // Show loading for at least 2.5s for animation
-        await new Promise(r => setTimeout(r, 2500));
+        // Check workspace with 5s timeout
+        const [wsRes] = await Promise.all([
+          Promise.race([fetch("/api/workspace"), timeout(5000)]) as Promise<Response>,
+          new Promise(r => setTimeout(r, 1500)),
+        ]);
+        const wsData = await (wsRes as Response).json();
 
         if (wsData?.workspace) {
           router.replace("/dashboard");
