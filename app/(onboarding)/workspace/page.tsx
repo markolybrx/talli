@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
+import { LoadingScreen } from "@/components/ui/LoadingScreen";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -30,6 +31,7 @@ export default function WorkspacePage() {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("choose");
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
 
   const createForm = useForm<CreateData>({ resolver: zodResolver(createSchema) });
@@ -51,6 +53,7 @@ export default function WorkspacePage() {
       }
       setGeneratedCode(code);
       toast.success("Workspace created!");
+      setRedirecting(true);
     } catch (e: any) {
       toast.error(e.message ?? "Something went wrong.");
     } finally {
@@ -72,6 +75,7 @@ export default function WorkspacePage() {
         return;
       }
       toast.success("Joined workspace!");
+      setRedirecting(true);
       router.push("/dashboard");
       router.refresh();
     } catch (e: any) {
@@ -80,6 +84,8 @@ export default function WorkspacePage() {
       setLoading(false);
     }
   };
+
+  if (redirecting) return <LoadingScreen />;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
