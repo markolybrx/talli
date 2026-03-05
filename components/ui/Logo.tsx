@@ -16,27 +16,20 @@ export function TalliIcon({ size = 36, className }: { size?: number; className?:
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      {/* Outer rounded square background */}
-      <rect width="40" height="40" rx="10" fill="#6366F1" />
-
-      {/* Talli mark — stylized T with checkmark integration */}
-      {/* Horizontal bar of T */}
-      <rect x="8" y="10" width="24" height="4" rx="2" fill="white" />
-
-      {/* Vertical stem of T */}
-      <rect x="17" y="14" width="6" height="10" rx="1.5" fill="white" />
-
-      {/* Checkmark / tick mark at bottom — represents task completion */}
-      <path
-        d="M10 28L15.5 33.5L30 22"
-        stroke="white"
-        strokeWidth="3.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-
-      {/* Subtle dot accent — top right */}
-      <circle cx="33" cy="8" r="2.5" fill="#A5B4FC" />
+      <defs>
+        <linearGradient id="talliGrad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#7C3AED"/>
+          <stop offset="100%" stopColor="#6366F1"/>
+        </linearGradient>
+      </defs>
+      <rect width="40" height="40" rx="11" fill="url(#talliGrad)"/>
+      {/* Progress bars */}
+      <rect x="8" y="11" width="24" height="4" rx="2" fill="white"/>
+      <rect x="8" y="18" width="18" height="4" rx="2" fill="white" opacity="0.7"/>
+      <rect x="8" y="25" width="12" height="4" rx="2" fill="white" opacity="0.4"/>
+      {/* Checkmark badge */}
+      <circle cx="33" cy="27" r="4" fill="#C4B5FD"/>
+      <path d="M31 27l1.5 1.5L35 25.5" stroke="#4F46E5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
 }
