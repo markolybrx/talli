@@ -3,6 +3,36 @@ import { auth } from "@/lib/auth";
 import { createClient } from "@supabase/supabase-js";
 import { isWithin12Hours } from "@/lib/utils";
 
+export async function GET(req: Request) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const admin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    const { searchParams } = new URL(req.url);
+    const workspaceId = searchParams.get("workspaceId");
+    if (!workspaceId) return NextResponse.json({ error: "workspaceId required" }, { status: 400 });
+
+    const { data, error } = await admin
+      .from("tasks")
+      .select("*, subtasks(*)")
+      .eq("workspace_id", workspaceId)
+      .order("is_pinned", { ascending: false })
+      .order("created_at", { ascending: false });
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    return NextResponse.json({ tasks: data ?? [] });
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message }, { status: 500 });
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const session = await auth();
@@ -59,39 +89,9 @@ export async function POST(req: Request) {
       user_id: session.user.id,
       action: "task_created",
       metadata: { title: task.title },
-    })
+    });
 
     return NextResponse.json({ task });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
-  }
-}
-
-export async function GET(req: Request) {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    const admin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    );
-
-    const { searchParams } = new URL(req.url);
-    const workspaceId = searchParams.get("workspaceId");
-    if (!workspaceId) return NextResponse.json({ error: "workspaceId required" }, { status: 400 });
-
-    const { data, error } = await admin
-      .from("tasks")
-      .select("*, subtasks(*)")
-      .eq("workspace_id", workspaceId)
-      .order("is_pinned", { ascending: false })
-      .order("created_at", { ascending: false });
-
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-
-    return NextResponse.json({ tasks: data ?? [] });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
