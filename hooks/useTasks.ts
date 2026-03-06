@@ -70,7 +70,9 @@ export function useTasks(workspaceId: string | null): UseTasksReturn {
       else {
         const processed = (json.tasks ?? []).map((task: any) => {
           let status = task.status as TaskStatus;
-          if (status !== "completed" && (task.priority === "high" || (task.due_date && isWithin12Hours(task.due_date)))) {
+          // Only auto-promote to urgent if task is already pending AND due very soon
+          // Never override explicit urgent/completed status set by user
+          if (status === "pending" && task.due_date && isWithin12Hours(task.due_date)) {
             status = "urgent";
           }
           return { ...task, status };
@@ -127,7 +129,16 @@ export function useTasks(workspaceId: string | null): UseTasksReturn {
   };
 
   const moveTask = async (id: string, newStatus: TaskStatus): Promise<boolean> => {
-    return updateTask(id, { status: newStatus });
+    // Optimistically update local state immediately
+    setTasks((prev) => prev.map((t) => t.id === id ? { ...t, status: newStatus } : t));
+    const { error: updateError } = await supabase.from("tasks").update({ status: newStatus }).eq("id", id);
+    if (updateError) {
+      toast.error("Failed to update task");
+      await fetchTasks(); // revert on error
+      return false;
+    }
+    await fetchTasks();
+    return true;
   };
 
   const urgentTasks = tasks.filter((t) => t.status === "urgent");

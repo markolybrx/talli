@@ -62,7 +62,7 @@ export function FilterBar({ onFilterChange, members }: FilterBarProps) {
       </button>
 
       {open && (
-        <div className="absolute left-0 top-11 z-40 w-72 bg-surface border border-border rounded-2xl shadow-dropdown p-4 space-y-4 animate-slide-down">
+        <div className="absolute left-0 top-11 z-[100] w-72 bg-surface border border-border rounded-2xl shadow-dropdown p-4 space-y-4 animate-slide-down">
           {/* Priority */}
           <div>
             <p className="text-xs font-semibold text-text-secondary mb-2">Priority</p>

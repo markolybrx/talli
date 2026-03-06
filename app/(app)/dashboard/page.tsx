@@ -182,7 +182,7 @@ export default function DashboardPage() {
   return (
     <>
       <Topbar title="Dashboard" onSearch={setSearchQuery} />
-      <div className="flex-1 p-4 lg:p-6 space-y-4 overflow-x-hidden">
+      <div className="flex-1 p-4 lg:p-6 space-y-4">
         <StatsWidget tasks={tasks} />
         <AISummaryBanner tasks={tasks} workspaceName={workspace?.name ?? "Workspace"} />
 
