@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Topbar } from "@/components/layout/Topbar";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { Avatar } from "@/components/ui/Avatar";
+import { RetrospectiveWidget } from "@/components/dashboard/RetrospectiveWidget";
 import { cn } from "@/lib/utils";
 
 interface AnalyticsData {

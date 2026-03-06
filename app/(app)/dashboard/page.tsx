@@ -16,6 +16,7 @@ import { CreateTaskModal } from "@/components/tasks/CreateTaskModal";
 import { TaskDetailModal } from "@/components/tasks/TaskDetailModal";
 import { BulkActionsBar } from "@/components/tasks/BulkActions";
 import { NLTaskCreator } from "@/components/ai/NLTaskCreator";
+import { MeetingImporter } from "@/components/ai/MeetingImporter";
 import { Button } from "@/components/ui/Button";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useTasks } from "@/hooks/useTasks";
@@ -67,6 +68,7 @@ export default function DashboardPage() {
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [nlModalOpen, setNlModalOpen] = useState(false);
+  const [meetingModalOpen, setMeetingModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileTab, setMobileTab] = useState<MobileTab>("pending");
@@ -191,6 +193,12 @@ export default function DashboardPage() {
           <p className="text-sm text-text-secondary flex-1">
             {tasks.length} task{tasks.length !== 1 ? "s" : ""}
           </p>
+          <Button variant="outline" size="sm" onClick={() => setMeetingModalOpen(true)} className="gap-1.5">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            Meeting
+          </Button>
           <Button variant="outline" size="sm" onClick={() => setNlModalOpen(true)} className="gap-1.5">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 2L13.09 8.26L19 7L15.45 11.82L20 16L13.64 15.23L12 21L10.36 15.23L4 16L8.55 11.82L5 7L10.91 8.26L12 2Z" />
@@ -283,6 +291,24 @@ export default function DashboardPage() {
         }}
         members={membersForModal} />
 
+      <MeetingImporter
+        open={meetingModalOpen}
+        onClose={() => setMeetingModalOpen(false)}
+        members={membersForModal}
+        onImport={async (tasks) => {
+          if (!workspace?.id) return;
+          for (const t of tasks) {
+            await createTask({
+              title: t.title,
+              description: t.description,
+              priority: t.priority,
+              category: t.category,
+              due_date: t.due_date || undefined,
+              assigned_to: (t as any).assigned_to,
+            }, workspace.id);
+          }
+        }}
+      />
       <BulkActionsBar selectedCount={selectedIds.size}
         onClearSelection={() => setSelectedIds(new Set())}
         onBulkMove={handleBulkMove} onBulkDelete={handleBulkDelete}
