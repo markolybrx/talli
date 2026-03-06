@@ -171,14 +171,7 @@ export default function DashboardPage() {
 
 
 
-  // Show loading only briefly while workspace fetches
-  if (wsLoading) return <LoadingScreen />;
-
-  // No workspace - send to setup
-  if (!workspace) {
-    if (typeof window !== "undefined") window.location.href = "/workspace";
-    return <LoadingScreen />;
-  }
+  if (!workspace) return null;
 
   const columns: { id: TaskStatus; tasks: Task[] }[] = [
     { id: "urgent", tasks: applyFilters(urgentTasks) },
