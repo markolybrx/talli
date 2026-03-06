@@ -10,24 +10,27 @@ export async function GET(req: NextRequest) {
   if (!workspaceId) return NextResponse.json({ error: "workspaceId required" }, { status: 400 });
 
   // All tasks
-  const { data: tasks } = await supabaseAdmin
+  const { data: tasksRaw } = await supabaseAdmin
     .from("tasks")
     .select("id, status, priority, category, created_at, updated_at, assigned_to, due_date")
     .eq("workspace_id", workspaceId);
 
   // Time logs
-  const { data: timeLogs } = await supabaseAdmin
+  const { data: timeLogsRaw } = await supabaseAdmin
     .from("time_logs")
     .select("user_id, duration_minutes, started_at")
     .in("task_id", (tasks ?? []).map((t: any) => t.id));
 
   // Members
-  const { data: members } = await supabaseAdmin
+  const { data: membersRaw } = await supabaseAdmin
     .from("workspace_members")
     .select("user_id, profile:user_id(full_name, email, avatar_url)")
     .eq("workspace_id", workspaceId);
 
-  const t: any[] = tasks ?? [];
+  const tasks = tasksRaw as any[] ?? [];
+  const timeLogs = timeLogsRaw as any[] ?? [];
+  const members = membersRaw as any[] ?? [];
+  const t: any[] = tasks;
   const now = new Date();
 
   // ── Completion over last 7 days ──────────────────────────
@@ -61,7 +64,7 @@ export async function GET(req: NextRequest) {
   };
 
   // ── Member workload ──────────────────────────────────────
-  const memberStats = ((members ?? []) as any[]).map((m: any) => {
+  const memberStats = members.map((m: any) => {
     const assigned = t.filter((x) => x.assigned_to === m.user_id);
     const timeLogged = (timeLogs ?? [])
       .filter((l) => l.user_id === m.user_id)
