@@ -14,6 +14,7 @@ const navItems = [
   { href: "/calendar", label: "Calendar" },
   { href: "/members", label: "Members" },
   { href: "/activity", label: "Activity" },
+  { href: "/analytics", label: "Analytics" },
 ];
 
 export function Sidebar({ workspace }: SidebarProps) {
