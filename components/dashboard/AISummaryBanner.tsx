@@ -35,14 +35,14 @@ export function AISummaryBanner({ tasks, workspaceName }: AISummaryBannerProps) 
     } finally {
       setLoading(false);
     }
-  }, [tasks.length, workspaceName]); // eslint-disable-line
+  }, [JSON.stringify(tasks.map(t => ({ id: t.id, status: t.status, priority: t.priority }))), workspaceName]); // eslint-disable-line
 
   useEffect(() => {
     fetchSummary();
     // Refresh every 5 minutes
     const interval = setInterval(fetchSummary, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, []); // eslint-disable-line
+  }, [fetchSummary]);
 
   return (
     <div className="bg-surface border border-border rounded-2xl p-4 flex items-start gap-3">
