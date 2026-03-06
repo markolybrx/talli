@@ -2,18 +2,20 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { createClient } from "@supabase/supabase-js";
 
+function makeAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+}
+
 export async function POST(req: Request) {
   try {
     const session = await auth();
     if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const admin = makeAdmin();
 
-    const admin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    );
-
-    // Ensure profile exists first
     await admin.from("profiles").upsert({
       id: session.user.id,
       email: session.user.email,
@@ -22,7 +24,6 @@ export async function POST(req: Request) {
     }, { onConflict: "id" });
 
     const { name, code } = await req.json();
-
     const { data: workspace, error } = await admin
       .from("workspaces")
       .insert({ name, code, created_by: session.user.id })
@@ -49,14 +50,17 @@ export async function GET() {
   try {
     const session = await auth();
     if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const admin = makeAdmin();
 
-    const admin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    );
+    // Upsert profile so it always exists
+    await admin.from("profiles").upsert({
+      id: session.user.id,
+      email: session.user.email,
+      full_name: session.user.name,
+      avatar_url: session.user.image,
+    }, { onConflict: "id" });
 
-    // Try direct user_id lookup first
+    // Try direct user_id lookup
     let { data: membership } = await admin
       .from("workspace_members")
       .select("workspace_id")
@@ -64,26 +68,34 @@ export async function GET() {
       .limit(1)
       .single();
 
-    // Fallback: look up by email in case user_id mismatch from OAuth migration
-    console.log("[workspace GET] membership by id:", JSON.stringify(membership));
-
+    // Fallback: find other profiles with same email and migrate their membership
     if (!membership && session.user.email) {
-      const { data: profile } = await admin
+      const { data: allProfiles } = await admin
         .from("profiles")
         .select("id")
-        .eq("email", session.user.email)
-        .single();
+        .eq("email", session.user.email);
 
-      console.log("[workspace GET] profile by email:", JSON.stringify(profile));
+      const otherIds = (allProfiles ?? [])
+        .map((p: any) => p.id)
+        .filter((id: string) => id !== session.user.id);
 
-      if (profile && profile.id !== session.user.id) {
-        const { data: membershipByProfile } = await admin
+      for (const altId of otherIds) {
+        const { data: altMembership } = await admin
           .from("workspace_members")
           .select("workspace_id")
-          .eq("user_id", profile.id)
+          .eq("user_id", altId)
           .limit(1)
           .single();
-        membership = membershipByProfile;
+
+        if (altMembership) {
+          await admin.from("workspace_members").upsert({
+            workspace_id: altMembership.workspace_id,
+            user_id: session.user.id,
+            role: "admin",
+          }, { onConflict: "workspace_id,user_id" });
+          membership = altMembership;
+          break;
+        }
       }
     }
 
