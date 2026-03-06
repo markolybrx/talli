@@ -61,7 +61,7 @@ const COLUMN_CONFIG = {
 export default function DashboardPage() {
   const sessionResult = useSession();
   const session = sessionResult?.data;
-  const { workspace, members, loading: wsLoading } = useWorkspace();
+  const { workspace, members } = useWorkspace();
   const { tasks, urgentTasks, pendingTasks, completedTasks, loading: tasksLoading,
     createTask, updateTask, deleteTask, moveTask } = useTasks(workspace?.id ?? null);
 
