@@ -73,7 +73,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           .single();
 
         if (!existingProfile) {
-          // Create profile for new Google user
+          // Create Supabase auth user for new Google user
           const { data: authUser } =
             await supabaseAdmin.auth.admin.createUser({
               email: user.email!,
@@ -90,10 +90,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               email: user.email!,
               full_name: user.name,
               avatar_url: user.image,
-            });
+            }, { onConflict: "id" });
             user.id = authUser.user.id;
           }
         } else {
+          // Always update profile with latest info
+          await supabaseAdmin.from("profiles").update({
+            full_name: user.name,
+            avatar_url: user.image,
+          }).eq("id", existingProfile.id);
           user.id = existingProfile.id;
         }
       }
@@ -101,16 +106,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async jwt({ token, user, account }) {
       if (user) {
-        // For Google, look up the actual Supabase profile ID by email
         if (account?.provider === "google" && user.email) {
+          // Always resolve the Supabase UUID by email — never trust Google's OAuth sub ID
           const { data: profile } = await supabaseAdmin
             .from("profiles")
             .select("id")
             .eq("email", user.email)
             .single();
           token.id = profile?.id ?? user.id;
+          token.email = user.email;
         } else {
           token.id = user.id;
+          token.email = user.email;
         }
       }
       return token;
