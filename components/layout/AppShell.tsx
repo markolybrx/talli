@@ -22,7 +22,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       <Sidebar workspace={workspace} />
-      <main style={{ flex: 1, paddingBottom: "80px", overflowX: "hidden" }}>{children}</main>
+      <main style={{ flex: 1, paddingTop: "64px", paddingBottom: "80px" }}>{children}</main>
     </div>
   );
 }

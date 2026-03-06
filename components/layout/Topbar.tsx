@@ -23,7 +23,7 @@ export function Topbar({ title = "Dashboard", onSearch }: TopbarProps) {
   };
 
   return (
-    <header className="h-16 bg-surface border-b border-border flex items-center px-4 lg:px-6 gap-4 sticky top-0 z-30">
+    <header className="h-16 bg-surface border-b border-border flex items-center px-4 lg:px-6 gap-4 fixed top-0 left-0 right-0 z-30">
       <div className="flex items-center gap-2.5">
         <TalliIcon size={32} />
         <h1 className="text-base font-semibold text-text-primary">{title}</h1>

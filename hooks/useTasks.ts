@@ -60,18 +60,14 @@ export function useTasks(workspaceId: string | null): UseTasksReturn {
   const fetchTasks = useCallback(async () => {
     if (!workspaceId) { setLoading(false); return; }
     setLoading(true);
-    const controller = new AbortController();
-    const timer = setTimeout(() => { controller.abort(); setLoading(false); }, 8000);
     try {
-      const res = await fetch(`/api/tasks?workspaceId=${workspaceId}`, { signal: controller.signal });
-      clearTimeout(timer);
+      const res = await fetch(`/api/tasks?workspaceId=${workspaceId}`);
       const json = await res.json();
       if (!res.ok) { setError("Failed to load tasks"); }
       else {
         const processed = (json.tasks ?? []).map((task: any) => {
           let status = task.status as TaskStatus;
-          // Only auto-promote to urgent if task is already pending AND due very soon
-          // Never override explicit urgent/completed status set by user
+          // Only auto-promote to urgent if pending AND due very soon
           if (status === "pending" && task.due_date && isWithin12Hours(task.due_date)) {
             status = "urgent";
           }
@@ -79,19 +75,21 @@ export function useTasks(workspaceId: string | null): UseTasksReturn {
         });
         setTasks(processed);
       }
-    } catch { setError("Failed to load tasks"); }
-    finally { setLoading(false); }
+    } catch (e: any) {
+      setError("Failed to load tasks");
+    } finally {
+      setLoading(false);
+    }
   }, [workspaceId]);
 
   useEffect(() => {
     fetchTasks();
-
     if (!workspaceId) return;
     const channel = supabase
       .channel(`tasks:${workspaceId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "tasks", filter: `workspace_id=eq.${workspaceId}` }, () => fetchTasks())
+      .on("postgres_changes", { event: "*", schema: "public", table: "tasks",
+        filter: `workspace_id=eq.${workspaceId}` }, () => fetchTasks())
       .subscribe();
-
     return () => { supabase.removeChannel(channel); };
   }, [workspaceId, fetchTasks]);
 
@@ -108,37 +106,54 @@ export function useTasks(workspaceId: string | null): UseTasksReturn {
   };
 
   const updateTask = async (id: string, input: UpdateTaskInput): Promise<boolean> => {
-    const { error: updateError } = await supabase.from("tasks").update(input).eq("id", id);
-    if (updateError) { toast.error("Failed to update task"); return false; }
-
-    if (session?.user?.id && workspaceId) {
-      await supabase.from("activity_logs").insert({
-        workspace_id: workspaceId, task_id: id, user_id: session.user.id,
-        action: "task_updated", metadata: input,
+    try {
+      const res = await fetch(`/api/tasks/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
       });
+      if (!res.ok) { toast.error("Failed to update task"); return false; }
+      await fetchTasks();
+      return true;
+    } catch {
+      toast.error("Failed to update task");
+      return false;
     }
-    await fetchTasks();
-    return true;
   };
 
   const deleteTask = async (id: string): Promise<boolean> => {
-    const { error: deleteError } = await supabase.from("tasks").delete().eq("id", id);
-    if (deleteError) { toast.error("Failed to delete task"); return false; }
-    setTasks((prev) => prev.filter((t) => t.id !== id));
-    return true;
+    try {
+      const res = await fetch(`/api/tasks/${id}`, { method: "DELETE" });
+      if (!res.ok) { toast.error("Failed to delete task"); return false; }
+      setTasks((prev) => prev.filter((t) => t.id !== id));
+      return true;
+    } catch {
+      toast.error("Failed to delete task");
+      return false;
+    }
   };
 
   const moveTask = async (id: string, newStatus: TaskStatus): Promise<boolean> => {
-    // Optimistically update local state immediately
+    // Optimistic update
     setTasks((prev) => prev.map((t) => t.id === id ? { ...t, status: newStatus } : t));
-    const { error: updateError } = await supabase.from("tasks").update({ status: newStatus }).eq("id", id);
-    if (updateError) {
+    try {
+      const res = await fetch(`/api/tasks/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!res.ok) {
+        toast.error("Failed to update task");
+        await fetchTasks();
+        return false;
+      }
+      await fetchTasks();
+      return true;
+    } catch {
       toast.error("Failed to update task");
-      await fetchTasks(); // revert on error
+      await fetchTasks();
       return false;
     }
-    await fetchTasks();
-    return true;
   };
 
   const urgentTasks = tasks.filter((t) => t.status === "urgent");
