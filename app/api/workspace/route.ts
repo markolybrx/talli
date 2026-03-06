@@ -52,6 +52,8 @@ export async function GET() {
     if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const admin = makeAdmin();
 
+    console.log("SESSION ID:", session.user.id, "EMAIL:", session.user.email);
+
     // Upsert profile so it always exists
     await admin.from("profiles").upsert({
       id: session.user.id,
