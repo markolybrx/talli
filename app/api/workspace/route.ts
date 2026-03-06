@@ -65,12 +65,16 @@ export async function GET() {
       .single();
 
     // Fallback: look up by email in case user_id mismatch from OAuth migration
+    console.log("[workspace GET] membership by id:", JSON.stringify(membership));
+
     if (!membership && session.user.email) {
       const { data: profile } = await admin
         .from("profiles")
         .select("id")
         .eq("email", session.user.email)
         .single();
+
+      console.log("[workspace GET] profile by email:", JSON.stringify(profile));
 
       if (profile && profile.id !== session.user.id) {
         const { data: membershipByProfile } = await admin
