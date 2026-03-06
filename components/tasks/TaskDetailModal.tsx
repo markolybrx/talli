@@ -12,6 +12,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { SubtaskList } from "@/components/tasks/SubtaskList";
 import { TaskComments } from "@/components/tasks/TaskComments";
 import { TaskAttachments } from "@/components/tasks/TaskAttachments";
+import { TaskTimeTracker } from "@/components/tasks/TaskTimeTracker";
 import { cn, CATEGORY_CONFIG, PRIORITY_CONFIG, formatDateTime, isWithin12Hours, isOverdue } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import type { Task, Priority, TaskCategory, TaskStatus } from "@/types";
@@ -35,7 +36,7 @@ const editSchema = z.object({
 
 type EditFormData = z.infer<typeof editSchema>;
 
-type TabType = "details" | "subtasks" | "comments" | "attachments" | "history";
+type TabType = "details" | "subtasks" | "comments" | "attachments" | "time" | "history";
 
 interface TaskDetailModalProps {
   task: Task | null;
@@ -175,6 +176,7 @@ export function TaskDetailModal({
     { id: "subtasks", label: `Subtasks${task.subtasks?.length ? ` (${task.subtasks.length})` : ""}` },
     { id: "comments", label: "Comments" },
     { id: "attachments", label: "Attachments" },
+    { id: "time", label: "Time" },
     { id: "history", label: "History" },
   ];
 
@@ -445,6 +447,11 @@ export function TaskDetailModal({
           {/* ATTACHMENTS TAB */}
           {activeTab === "attachments" && (
             <TaskAttachments taskId={task.id} currentUserId={currentUserId} />
+          )}
+
+          {/* TIME TAB */}
+          {activeTab === "time" && (
+            <TaskTimeTracker taskId={task.id} currentUserId={currentUserId} />
           )}
 
           {/* HISTORY TAB */}
