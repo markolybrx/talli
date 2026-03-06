@@ -15,6 +15,7 @@ import { FilterBar } from "@/components/dashboard/FilterBar";
 import { CreateTaskModal } from "@/components/tasks/CreateTaskModal";
 import { TaskDetailModal } from "@/components/tasks/TaskDetailModal";
 import { BulkActionsBar } from "@/components/tasks/BulkActions";
+import { TableView } from "@/components/tasks/TableView";
 import { NLTaskCreator } from "@/components/ai/NLTaskCreator";
 import { MeetingImporter } from "@/components/ai/MeetingImporter";
 import { Button } from "@/components/ui/Button";
@@ -68,6 +69,7 @@ export default function DashboardPage() {
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [nlModalOpen, setNlModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"board" | "table">("board");
   const [meetingModalOpen, setMeetingModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -205,6 +207,28 @@ export default function DashboardPage() {
             </svg>
             AI Create
           </Button>
+          {/* View toggle - desktop only */}
+          <div className="hidden lg:flex items-center border border-border rounded-xl overflow-hidden">
+            <button onClick={() => setViewMode("board")}
+              className={cn("px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1.5",
+                viewMode === "board" ? "bg-brand text-white" : "text-text-secondary hover:bg-gray-50")}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+              </svg>
+              Board
+            </button>
+            <button onClick={() => setViewMode("table")}
+              className={cn("px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1.5",
+                viewMode === "table" ? "bg-brand text-white" : "text-text-secondary hover:bg-gray-50")}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+                <line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/>
+                <line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+              </svg>
+              Table
+            </button>
+          </div>
           <Button size="sm" onClick={() => setCreateModalOpen(true)} className="gap-1.5">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
@@ -226,6 +250,20 @@ export default function DashboardPage() {
           })}
         </div>
 
+        {/* Table view (desktop only) */}
+        {viewMode === "table" && (
+          <div className="hidden lg:block">
+            <TableView
+              tasks={filteredTasks}
+              members={membersForCard}
+              onEdit={setEditingTask}
+              onMove={moveTask}
+              onDelete={handleDeleteTask}
+            />
+          </div>
+        )}
+
+        {viewMode === "board" && (
         <div style={{ touchAction: "pan-y" }}>
         <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
           <div className="hidden lg:grid lg:grid-cols-3 gap-5">
@@ -262,6 +300,7 @@ export default function DashboardPage() {
           </div>
         </DndContext>
         </div>
+        )}
       </div>
 
       <CreateTaskModal open={createModalOpen} onClose={() => setCreateModalOpen(false)}

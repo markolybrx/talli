@@ -1,5 +1,7 @@
 "use client";
 
+import { SwipeableCard } from "@/components/tasks/SwipeableCard";
+
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
