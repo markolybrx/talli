@@ -56,12 +56,32 @@ export async function GET() {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    const { data: membership } = await admin
+    // Try direct user_id lookup first
+    let { data: membership } = await admin
       .from("workspace_members")
       .select("workspace_id")
       .eq("user_id", session.user.id)
       .limit(1)
       .single();
+
+    // Fallback: look up by email in case user_id mismatch from OAuth migration
+    if (!membership && session.user.email) {
+      const { data: profile } = await admin
+        .from("profiles")
+        .select("id")
+        .eq("email", session.user.email)
+        .single();
+
+      if (profile && profile.id !== session.user.id) {
+        const { data: membershipByProfile } = await admin
+          .from("workspace_members")
+          .select("workspace_id")
+          .eq("user_id", profile.id)
+          .limit(1)
+          .single();
+        membership = membershipByProfile;
+      }
+    }
 
     if (!membership) return NextResponse.json({ workspace: null, members: [] });
 
