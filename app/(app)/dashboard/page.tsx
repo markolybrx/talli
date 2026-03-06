@@ -171,7 +171,7 @@ export default function DashboardPage() {
 
 
 
-  if (!workspace) return null;
+  if (!workspace) return <LoadingScreen />;
 
   const columns: { id: TaskStatus; tasks: Task[] }[] = [
     { id: "urgent", tasks: applyFilters(urgentTasks) },
@@ -218,6 +218,7 @@ export default function DashboardPage() {
           })}
         </div>
 
+        <div style={{ touchAction: "pan-y" }}>
         <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
           <div className="hidden lg:grid lg:grid-cols-3 gap-5">
             {columns.map(({ id, tasks: colTasks }) => {
@@ -252,6 +253,7 @@ export default function DashboardPage() {
             })}
           </div>
         </DndContext>
+        </div>
       </div>
 
       <CreateTaskModal open={createModalOpen} onClose={() => setCreateModalOpen(false)}
