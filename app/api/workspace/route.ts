@@ -77,7 +77,7 @@ export async function GET() {
 
       const otherIds = (allProfiles ?? [])
         .map((p: any) => p.id)
-        .filter((id: string) => id !== session.user.id);
+        .filter((id: string) => id !== session!.user!.id);
 
       for (const altId of otherIds) {
         const { data: altMembership } = await admin
