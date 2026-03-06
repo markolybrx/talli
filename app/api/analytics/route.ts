@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     .select("user_id, profile:user_id(full_name, email, avatar_url)")
     .eq("workspace_id", workspaceId);
 
-  const t = tasks ?? [];
+  const t: any[] = tasks ?? [];
   const now = new Date();
 
   // ── Completion over last 7 days ──────────────────────────
@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
   };
 
   // ── Member workload ──────────────────────────────────────
-  const memberStats = (members ?? []).map((m: any) => {
+  const memberStats = ((members ?? []) as any[]).map((m: any) => {
     const assigned = t.filter((x) => x.assigned_to === m.user_id);
     const timeLogged = (timeLogs ?? [])
       .filter((l) => l.user_id === m.user_id)
