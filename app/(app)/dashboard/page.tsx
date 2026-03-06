@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useState, useCallback } from "react";
 import {
-  DndContext, DragEndEvent, PointerSensor,
+  DndContext, DragEndEvent, PointerSensor, MouseSensor, TouchSensor,
   useSensor, useSensors, closestCorners,
 } from "@dnd-kit/core";
 import { Topbar } from "@/components/layout/Topbar";
@@ -76,7 +76,10 @@ export default function DashboardPage() {
     assignee: string | null; dueSoon: boolean; overdue: boolean;
   }>({ priority: null, category: null, assignee: null, dueSoon: false, overdue: false });
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } })
+  );
 
   const applyFilters = useCallback((taskList: Task[]) => {
     let result = taskList;
