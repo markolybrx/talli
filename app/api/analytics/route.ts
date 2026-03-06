@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   const { data: timeLogs } = await supabaseAdmin
     .from("time_logs")
     .select("user_id, duration_minutes, started_at")
-    .in("task_id", (tasks ?? []).map((t) => t.id));
+    .in("task_id", (tasks ?? []).map((t: any) => t.id));
 
   // Members
   const { data: members } = await supabaseAdmin
