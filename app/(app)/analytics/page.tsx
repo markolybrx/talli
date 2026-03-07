@@ -6,6 +6,7 @@ import { useWorkspace } from "@/hooks/useWorkspace";
 import { Avatar } from "@/components/ui/Avatar";
 import { RetrospectiveWidget } from "@/components/dashboard/RetrospectiveWidget";
 import { WorkloadInsights } from "@/components/dashboard/WorkloadInsights";
+import { ExportButton } from "@/components/dashboard/ExportButton";
 import { cn } from "@/lib/utils";
 
 interface AnalyticsData {
@@ -178,6 +179,13 @@ export default function AnalyticsPage() {
     <>
       <Topbar title="Analytics" />
       <div className="flex-1 p-4 lg:p-6 space-y-5">
+
+        {/* Export */}
+        {workspace?.id && (
+          <div className="flex justify-end">
+            <ExportButton workspaceId={workspace.id} />
+          </div>
+        )}
 
         {/* Summary cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
