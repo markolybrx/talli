@@ -17,6 +17,7 @@ import { BulkActionsBar } from "@/components/tasks/BulkActions";
 import { TableView } from "@/components/tasks/TableView";
 import { NLTaskCreator } from "@/components/ai/NLTaskCreator";
 import { MeetingImporter } from "@/components/ai/MeetingImporter";
+import { NLFilterBar } from "@/components/dashboard/NLFilterBar";
 import { Button } from "@/components/ui/Button";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useTasks } from "@/hooks/useTasks";
@@ -191,6 +192,11 @@ export default function DashboardPage() {
 
         <div className="flex items-center gap-3 flex-wrap">
           <FilterBar onFilterChange={setFilters} members={membersForModal} />
+          <NLFilterBar
+            members={membersForModal}
+            onApply={(f) => setFilters({ ...filters, ...f })}
+            onClear={() => setFilters({ priority: null, category: null, assignee: null, dueSoon: false, overdue: false })}
+          />
           <p className="text-sm text-text-secondary flex-1">
             {tasks.length} task{tasks.length !== 1 ? "s" : ""}
           </p>

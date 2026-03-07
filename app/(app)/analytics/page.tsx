@@ -5,6 +5,7 @@ import { Topbar } from "@/components/layout/Topbar";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { Avatar } from "@/components/ui/Avatar";
 import { RetrospectiveWidget } from "@/components/dashboard/RetrospectiveWidget";
+import { WorkloadInsights } from "@/components/dashboard/WorkloadInsights";
 import { cn } from "@/lib/utils";
 
 interface AnalyticsData {
