@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { MobileNav } from "@/components/layout/MobileNav";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { LoadingScreen } from "@/components/ui/LoadingScreen";
 
@@ -20,9 +21,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   if (!session) return null;
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
+    <div className="flex min-h-screen bg-background">
       <Sidebar workspace={workspace} />
-      <main style={{ flex: 1, paddingTop: "64px", paddingBottom: "80px" }}>{children}</main>
+      <main className="flex-1 flex flex-col min-w-0 pb-20 lg:pb-0">
+        {children}
+      </main>
+      <MobileNav />
     </div>
   );
 }

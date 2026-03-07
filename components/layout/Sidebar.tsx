@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
+import { cn } from "@/lib/utils";
 import type { Workspace } from "@/types";
 
 interface SidebarProps {
@@ -22,54 +23,44 @@ export function Sidebar({ workspace }: SidebarProps) {
   const { data: session } = useSession();
 
   return (
-    <aside style={{
-      display: "none",
-      width: "240px",
-      backgroundColor: "#fff",
-      borderRight: "1px solid #E4E4E7",
-      height: "100vh",
-      position: "sticky",
-      top: 0,
-      flexDirection: "column",
-      flexShrink: 0,
-    }}
-    className="lg-sidebar">
-      <div style={{ padding: "20px", borderBottom: "1px solid #E4E4E7" }}>
-        <span style={{ fontWeight: 700, fontSize: "18px", color: "#6366F1" }}>talli</span>
+    <aside className="hidden lg:flex flex-col flex-shrink-0 w-60 h-screen sticky top-0 bg-white border-r border-border">
+      <div className="px-5 py-5 border-b border-border">
+        <span className="font-bold text-lg text-brand">talli</span>
       </div>
 
       {workspace && (
-        <div style={{ padding: "12px 16px", borderBottom: "1px solid #E4E4E7" }}>
-          <div style={{ background: "#EEF2FF", borderRadius: "12px", padding: "8px 12px" }}>
-            <p style={{ fontSize: "12px", fontWeight: 600, color: "#18181B" }}>{workspace.name}</p>
-            <p style={{ fontSize: "10px", color: "#71717A", fontFamily: "monospace" }}>{workspace.code}</p>
+        <div className="px-4 py-3 border-b border-border">
+          <div className="bg-brand-light rounded-xl px-3 py-2">
+            <p className="text-xs font-semibold text-text-primary truncate">{workspace.name}</p>
+            <p className="text-[10px] text-text-secondary font-mono">{workspace.code}</p>
           </div>
         </div>
       )}
 
-      <nav style={{ flex: 1, padding: "12px" }}>
+      <nav className="flex-1 p-3 space-y-0.5">
         {navItems.map((item) => (
-          <Link key={item.href} href={item.href} style={{
-            display: "block",
-            padding: "10px 12px",
-            borderRadius: "10px",
-            fontSize: "14px",
-            fontWeight: 500,
-            marginBottom: "2px",
-            textDecoration: "none",
-            backgroundColor: pathname === item.href ? "#6366F1" : "transparent",
-            color: pathname === item.href ? "#fff" : "#71717A",
-          }}>
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              "flex items-center px-3 py-2.5 rounded-xl text-sm font-medium transition-colors duration-150",
+              pathname === item.href
+                ? "bg-brand text-white"
+                : "text-text-secondary hover:bg-gray-100 hover:text-text-primary"
+            )}
+          >
             {item.label}
           </Link>
         ))}
       </nav>
 
-      <div style={{ padding: "16px", borderTop: "1px solid #E4E4E7" }}>
-        <p style={{ fontSize: "14px", fontWeight: 500, color: "#18181B" }}>{session?.user?.name ?? "User"}</p>
-        <p style={{ fontSize: "12px", color: "#71717A", marginBottom: "8px" }}>{session?.user?.email}</p>
-        <button onClick={() => signOut({ callbackUrl: "/login" })}
-          style={{ fontSize: "12px", color: "#F43F5E", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+      <div className="px-4 py-4 border-t border-border">
+        <p className="text-sm font-medium text-text-primary truncate">{session?.user?.name ?? "User"}</p>
+        <p className="text-xs text-text-secondary truncate mb-2">{session?.user?.email}</p>
+        <button
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className="text-xs text-danger hover:text-danger/80 transition-colors"
+        >
           Sign out
         </button>
       </div>

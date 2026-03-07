@@ -67,7 +67,7 @@ export function MobileNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface border-t border-border">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-border">
       <div className="flex items-center">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
@@ -86,8 +86,6 @@ export function MobileNav() {
           );
         })}
       </div>
-      {/* Safe area for iOS */}
-      <div className="h-safe-area-inset-bottom" />
     </nav>
   );
 }
