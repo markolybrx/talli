@@ -255,7 +255,7 @@ export default function DashboardPage() {
           <div className="hidden lg:block">
             <TableView
               tasks={columns.flatMap(c => c.tasks)}
-              members={membersForCard}
+              members={membersForModal}
               onEdit={setEditingTask}
               onMove={moveTask}
               onDelete={handleDeleteTask}
@@ -272,7 +272,7 @@ export default function DashboardPage() {
               return (
                 <TaskColumn key={id} id={id} title={config.title} tasks={colTasks}
                   accentColor={config.accentColor} icon={config.icon}
-                  members={membersForCard}
+                  members={membersForModal}
                   onAddTask={id !== "completed" ? () => setCreateModalOpen(true) : undefined}
                   onEditTask={setEditingTask}
                   onDeleteTask={handleDeleteTask}
@@ -288,7 +288,7 @@ export default function DashboardPage() {
               return (
                 <TaskColumn key={id} id={id} title={config.title} tasks={colTasks}
                   accentColor={config.accentColor} icon={config.icon}
-                  members={membersForCard}
+                  members={membersForModal}
                   onAddTask={id !== "completed" ? () => setCreateModalOpen(true) : undefined}
                   onEditTask={setEditingTask}
                   onDeleteTask={handleDeleteTask}
