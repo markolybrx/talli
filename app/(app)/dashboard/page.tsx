@@ -254,7 +254,7 @@ export default function DashboardPage() {
         {viewMode === "table" && (
           <div className="hidden lg:block">
             <TableView
-              tasks={filteredTasks}
+              tasks={columns.flatMap(c => c.tasks)}
               members={membersForCard}
               onEdit={setEditingTask}
               onMove={moveTask}
