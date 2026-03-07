@@ -174,7 +174,7 @@ export default function DashboardPage() {
 
 
 
-  if (!workspace) return <LoadingScreen />;
+  if (!workspace) return null;
 
   const columns: { id: TaskStatus; tasks: Task[] }[] = [
     { id: "urgent", tasks: applyFilters(urgentTasks) },
