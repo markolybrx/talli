@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-poppins), sans-serif; background: #FAFAFA; color: #18181B; }
+}
+
+@layer utilities {
+  .card { @apply bg-white border border-zinc-200 rounded-2xl shadow-sm; }
+  .animate-slide-up { animation: slideUp 0.3s ease-out; }
+  .animate-fade-in { animation: fadeIn 0.2s ease-out; }
+  .animate-slide-down { animation: slideDown 0.2s ease-out; }
+}
+
+@keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
